@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول</title>
+
+    <!-- إضافة مكتبات Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-firestore.js"></script>
+
+    <style>
+        
+		
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f4b5c, #388e3c);
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .form-container {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: fadeIn 1s ease;
+        }
+
+        h2 {
+            font-size: 28px;
+            color: #388e3c;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: #388e3c;
+            box-shadow: 0 0 8px rgba(56, 142, 60, 0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: #388e3c;
+            color: white;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2c6e2d;
+            transform: translateY(-2px);
+        }
+
+        .error {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .error.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .switch-page {
+            margin-top: 15px;
+        }
+
+        .switch-page a {
+            font-size: 14px;
+            color: #388e3c;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .switch-page a:hover {
+            color: #2c6e2d;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+		
+    </style>
+</head>
+<body><div class="form-container">
+    <h2>تسجيل الدخول</h2>
+    <form id="login-form">
+        <input type="email" id="email" placeholder="البريد الإلكتروني" required><br>
+        <input type="password" id="password" placeholder="كلمة المرور" required><br>
+        <button type="submit">تسجيل الدخول</button>
+    </form>
+
+    <div class="error" id="error-message"></div>
+
+    <div class="switch-page">
+        <p>ليس لديك حساب؟ <a href="loginPage.html">تسجيل حساب جديد</a></p>
+    </div>
+
+    <div class="switch-page">
+        <p><a href="ForgotPassword.html">نسيت كلمة المرور؟</a></p>
+    </div>
+</div>
+
+<script>
+    // إعداد Firebase باستخدام إعداداتك
+    const firebaseConfig = {
+        apiKey: "AIzaSyCofKkonFelr038vwWCjQIVJuJEncBoNy0",
+        authDomain: "voting-app-3d570.firebaseapp.com",
+        databaseURL: "https://voting-app-3d570-default-rtdb.asia-southeast1.firebasedatabase.app/",
+        projectId: "voting-app-3d570",
+        storageBucket: "voting-app-3d570.appspot.com",
+        messagingSenderId: "430176927762",
+        appId: "1:430176927762:web:490f6c6a5f9fc2f75018cb"
+    };
+
+    // تهيئة Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // إزالة الجزء الذي يملأ الحقول تلقائيًا من localStorage
+    // window.onload = function() {
+    //     const savedEmail = localStorage.getItem("email");
+    //     const savedPassword = localStorage.getItem("password");
+
+    //     if (savedEmail && savedPassword) {
+    //         document.getElementById("email").value = savedEmail;
+    //         document.getElementById("password").value = savedPassword;
+    //     }
+    // };
+
+    // إضافة حدث للنموذج
+    document.getElementById("login-form").addEventListener("submit", function(event) {
+        event.preventDefault();  // منع إعادة تحميل الصفحة
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        // محاولة تسجيل الدخول
+        auth.signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                // إذا تم تسجيل الدخول بنجاح
+                window.location.href = "index.html"; // يمكنك تغيير هذا الرابط إلى الصفحة التي تريد الانتقال إليها بعد الدخول
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                let errorMessage = '';
+
+                // تحديد الرسالة بناءً على نوع الخطأ
+                if (errorCode === 'auth/user-not-found') {
+                    errorMessage = 'هذا البريد الإلكتروني غير مسجل في النظام. يرجى التأكد من إدخال البريد بشكل صحيح أو قم بتسجيل حساب جديد.';
+                } else if (errorCode === 'auth/wrong-password') {
+                    errorMessage = 'كلمة المرور التي أدخلتها غير صحيحة. تأكد من كلمة المرور.';
+                } else {
+                    errorMessage = 'البريد الإلكتروني أو كلمة المرور غير صحيحة، أو لم يتم تسجيل الحساب في النظام بعد.';
+                }
+
+                // عرض رسالة الخطأ للمستخدم
+                const errorElement = document.getElementById("error-message");
+                errorElement.textContent = errorMessage;
+                errorElement.classList.add("show"); // إضافة الكلاس لعرض الرسالة
+            });
+    });
+</script>
+
+</body>
+</html>

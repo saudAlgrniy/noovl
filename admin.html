@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحة الإدارة</title>
+    <style>
+        /* تنسيقات عامة */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0f0f0, #a9c7f5);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            justify-content: center;
+        }
+
+        /* رأس الصفحة */
+        header {
+            background-color: #3498db;
+            color: white;
+            font-size: 2rem;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        header:hover {
+            background-color: #2980b9;
+        }
+
+        /* الحاوية الرئيسية */
+        .container {
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: scale(1.05);
+        }
+
+        /* حقول الإدخال */
+        input {
+            padding: 15px;
+            width: 100%;
+            margin: 10px 0;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            background-color: #f9f9f9;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.7);
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        /* قائمة الخيارات */
+        .option-list {
+            margin-top: 30px;
+            overflow-y: auto;
+            max-height: 400px;
+            padding: 10px;
+            background-color: #fafafa;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* عنصر الخيار */
+        .option-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: transform 0.3s ease;
+        }
+
+        .option-item:hover {
+            transform: translateX(10px);
+            background-color: #f0f8ff;
+        }
+
+        .option-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .option-item img:hover {
+            transform: scale(1.1);
+        }
+
+        .delete-button {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-button:hover {
+            background-color: #c0392b;
+        }
+
+        /* استجابة للشاشات الصغيرة */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            header {
+                font-size: 1.5rem;
+            }
+
+            input, button {
+                font-size: 1rem;
+            }
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <header>
+        <h1>صفحة الإدارة</h1>
+    </header>
+    <div class="container">
+        <h2>إضافة خيار جديد</h2>
+        <input type="text" id="optionName" placeholder="اسم الخيار">
+        <input type="text" id="optionImage" placeholder="رابط الصورة">
+        <button onclick="addOption()">إضافة الخيار</button>
+        
+        <h2>الخيارات المتاحة</h2>
+        <div class="option-list" id="optionList"></div>
+    </div>
+
+    <script>
+        // إعداد Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCofKkonFelr038vwWCjQIVJuJEncBoNy0",
+            authDomain: "voting-app-3d570.firebaseapp.com",
+            databaseURL: "https://voting-app-3d570-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "voting-app-3d570",
+            storageBucket: "voting-app-3d570.appspot.com",
+            messagingSenderId: "430176927762",
+            appId: "1:430176927762:web:490f6c6a5f9fc2f75018cb"
+        };
+
+        // تهيئة Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // وظيفة إضافة خيار جديد
+        function addOption() {
+            const name = document.getElementById("optionName").value.trim();
+            const image = document.getElementById("optionImage").value.trim();
+
+            if (!name || !image) {
+                alert("يرجى إدخال جميع الحقول!");
+                return;
+            }
+
+            const newOptionRef = db.ref("options").push();
+            newOptionRef.set({
+                name: name,
+                image: image,
+                votes: 0
+            }).then(() => {
+                alert("تمت الإضافة بنجاح!");
+                document.getElementById("optionName").value = "";
+                document.getElementById("optionImage").value = "";
+            }).catch((error) => {
+                console.error("Error adding option: ", error);
+                alert("حدث خطأ أثناء الإضافة: " + error.message);
+            });
+        }
+
+        // تحميل الخيارات في الوقت الفعلي
+        function loadOptions() {
+            const optionList = document.getElementById("optionList");
+
+            db.ref("options").on("value", (snapshot) => {
+                const data = snapshot.val();
+                optionList.innerHTML = ""; // مسح القائمة لتجنب التكرار
+                if (data) {
+                    for (const key in data) {
+                        const option = data[key];
+                        optionList.innerHTML += `
+                            <div class="option-item">
+                                <span>${option.name} - عدد المصوتين: ${option.votes}</span>
+                                <img src="${option.image}" alt="${option.name}">
+                                <button class="delete-button" onclick="deleteOption('${key}')">حذف</button>
+                            </div>
+                        `;
+                    }
+                } else {
+                    optionList.innerHTML = "<p>لا توجد خيارات حالياً.</p>";
+                }
+            });
+        }
+
+        // وظيفة حذف خيار
+        function deleteOption(optionKey) {
+            const optionRef = db.ref(`options/${optionKey}`);
+            optionRef.remove()
+                .then(() => {
+                    alert("تم الحذف بنجاح!");
+                })
+                .catch((error) => {
+                    console.error("Error deleting option: ", error);
+                    alert("حدث خطأ أثناء الحذف: " + error.message);
+                });
+        }
+
+        // تحميل الخيارات عند فتح الصفحة
+        loadOptions();
+    </script>
+</body>
+</html>
