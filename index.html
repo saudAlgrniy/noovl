@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحة التصويت</title>
+    <style>
+        body {
+            font-family: 'Tajawal', Arial, sans-serif;
+            background-color: #eef2f5;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            color: #333;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        /* إضافة تصميم قائمة الهامبرغر */
+        .hamburger-menu {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .hamburger-menu div {
+            width: 30px;
+            height: 4px;
+            background-color: white;
+            margin: 6px 0;
+            transition: 0.4s;
+        }
+
+        .menu-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            text-align: center;
+            padding-top: 60px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .menu-container a {
+            display: block;
+            color: white;
+            font-size: 1.5rem;
+            margin: 20px 0;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .menu-container a:hover {
+            background-color: #007bff;
+        }
+
+        .menu-container.active {
+            display: block;
+        }
+
+        /* إضافة التأثير عند فتح قائمة الهامبرغر */
+        .hamburger-menu.open div:nth-child(1) {
+            transform: rotate(-45deg);
+            top: 8px;
+        }
+
+        .hamburger-menu.open div:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger-menu.open div:nth-child(3) {
+            transform: rotate(45deg);
+            top: -8px;
+        }
+
+        /* انزلاق القائمة */
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .container h2 {
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            color: #555;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .option {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 2px solid black;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .option img {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            border-radius: 8px;
+            object-fit: contain;
+            margin-top: 25px;
+        }
+
+        .option span {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #333;
+            display: block;
+            margin-top: 15px;
+            text-align: right;
+        }
+
+        .vote-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .vote-button.active {
+            display: inline-block;
+        }
+
+        .votes-count {
+            font-size: 1.2rem;
+            color: #555;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .selected {
+            border: 3px solid #ff5733;
+        }
+
+        .selected::before {
+            content: "✔";
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 3rem;
+            color: #ff5733;
+        }
+
+        .vote-point {
+            position: absolute;
+            top: 10px;
+            right: 5px;
+            width: 30px;
+            height: 30px;
+            background-color: #ff5733;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .vote-point-text {
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(45deg, #ff5733, #ff8c1a);
+            padding: 8px 10px;
+            border-radius: 10px;
+            position: absolute;
+            top: -12px;
+            right: 41px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .vote-point-text.visible {
+            opacity: 1;
+        }
+
+    </style>
+	<script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-auth-compat.js"></script>
+
+<body style="display: none;">
+    <header>
+        <div class="hamburger-menu" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <h1>صفحة التصويت</h1>
+    </header>
+    
+    <!-- قائمة الهامبرغر -->
+    <div id="menuContainer" class="menu-container">
+        <a href="javascript:void(0);" id="logoutBtn" onclick="logout()">تسجيل خروج</a>
+        <a href="javascript:void(0);" id="deleteAccountBtn" onclick="deleteAccount()">حذف الحساب نهائي</a>
+    </div>
+
+    <div class="container" id="optionsContainer">
+        <h2>: خيارات التصويت </h2>
+        <div class="loading-spinner" id="loadingSpinner"></div>
+        <div class="options-grid" id="optionsGrid"></div>
+
+        <button class="vote-button" id="voteButton" onclick="submitVote()">تصويت</button>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            const menuContainer = document.getElementById('menuContainer');
+            const hamburgerMenu = document.querySelector('.hamburger-menu');
+            menuContainer.classList.toggle('active');
+            hamburgerMenu.classList.toggle('open');
+        }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCofKkonFelr038vwWCjQIVJuJEncBoNy0",
+            authDomain: "voting-app-3d570.firebaseapp.com",
+            databaseURL: "https://voting-app-3d570-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "voting-app-3d570",
+            storageBucket: "voting-app-3d570.appspot.com",
+            messagingSenderId: "430176927762",
+            appId: "1:430176927762:web:490f6c6a5f9fc2f75018cb"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
+
+        let selectedOptionKey = null;
+
+        const optionsGrid = document.getElementById("optionsGrid");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+        const voteButton = document.getElementById("voteButton");
+
+        // التحقق من حالة تسجيل الدخول عند تحميل الصفحة
+        auth.onAuthStateChanged(function(user) {
+            if (!user) {
+                // إذا كان المستخدم غير مسجل دخول، قم بإعادة توجيهه إلى صفحة تسجيل الدخول
+                window.location.href = "login.html";  // تأكد من تعديل هذا الرابط لصفحة تسجيل الدخول
+            } else {
+                // إذا كان المستخدم مسجل دخوله، قم بتحميل الخيارات
+                displayOptions();
+                document.body.style.display = "block"; // إظهار المحتوى بعد التأكد من حالة تسجيل الدخول
+            }
+        });
+
+        function displayOptions() {
+            loadingSpinner.style.display = "block"; // عرض مؤشر التحميل أثناء تحميل الخيارات
+
+            db.ref("options").on("value", (snapshot) => {
+                const data = snapshot.val();
+                optionsGrid.innerHTML = '';
+                loadingSpinner.style.display = "none"; // إخفاء مؤشر التحميل
+
+                if (data) {
+                    for (const key in data) {
+                        const option = data[key];
+
+                        if (option.name && option.image && option.votes !== undefined) {
+                            let optionClass = '';
+                            let votePoint = '';
+                            let votePointText = '';
+
+                            if (selectedOptionKey === key) {
+                                optionClass = 'selected';
+                                votePoint = `<div class="vote-point"></div>`;
+                                votePointText = `<span class="vote-point-text visible">تم التصويت لهذا الخيار</span>`;
+                            }
+
+                            optionsGrid.innerHTML += `
+                                <div class="option ${optionClass}" onclick="selectOption('${key}', this)">
+                                    <img src="${option.image}" alt="${option.name}">
+                                    <span>${option.name}</span>
+                                    <p class="votes-count">عدد المصوتين: ${option.votes || 0}</p>
+                                    ${votePoint}
+                                    ${votePointText}
+                                </div>
+                            `;
+                        }
+                    }
+                } else {
+                    optionsGrid.innerHTML += "<p class='no-options'>لا توجد خيارات متاحة حالياً.</p>";
+                }
+            });
+        }
+
+        function selectOption(optionKey, element) {
+            selectedOptionKey = optionKey;
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => option.classList.remove('selected'));
+
+            element.classList.add('selected');
+            voteButton.classList.add('active');
+        }
+
+        function submitVote() {
+            if (selectedOptionKey) {
+                loadingSpinner.style.display = "block"; // عرض مؤشر التحميل أثناء التصويت
+                voteButton.disabled = true; // تعطيل الزر أثناء التصويت
+                const optionRef = db.ref(`options/${selectedOptionKey}`);
+                optionRef.transaction((option) => {
+                    if (option) {
+                        option.votes = (option.votes || 0) + 1;
+                    }
+                    return option;
+                }, function() {
+                    loadingSpinner.style.display = "none"; // إخفاء مؤشر التحميل
+                    displayOptions(); // إعادة تحميل الخيارات
+                    voteButton.classList.remove('active');
+                    selectedOptionKey = null;
+                    voteButton.disabled = false; // إعادة تفعيل الزر
+                });
+            }
+        }
+
+        // دالة لتسجيل الخروج
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.href = "login.html"; // بعد تسجيل الخروج، إعادة توجيه المستخدم إلى صفحة تسجيل الدخول
+            }).catch((error) => {
+                console.error("خطأ في تسجيل الخروج: ", error);
+            });
+        }
+
+        // دالة لحذف الحساب من Firebase
+        function deleteAccount() {
+            const user = auth.currentUser;
+            if (user) {
+                // حذف بيانات المستخدم من قاعدة البيانات
+                db.ref('users/' + user.uid).remove()
+                    .then(() => {
+                        // بعد حذف البيانات من قاعدة البيانات، قم بحذف الحساب
+                        user.delete().then(() => {
+                            alert('تم حذف الحساب بنجاح');
+                            window.location.href = "login.html"; // إعادة توجيه المستخدم إلى صفحة تسجيل الدخول
+                        }).catch((error) => {
+                            console.error("خطأ في حذف الحساب: ", error);
+                        });
+                    }).catch((error) => {
+                        console.error("خطأ في حذف البيانات من قاعدة البيانات: ", error);
+                    });
+            }
+        }
+    </script>
+</body>
+</html>
